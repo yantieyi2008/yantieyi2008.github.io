@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音乐播放器 - 自动播放</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff8a00, #e52e71);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+        
+        .player-container {
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+        
+        .album-art {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #ff8a00, #e52e71);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .track-info {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .track-title {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+        
+        .track-artist {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .play-btn {
+            background: linear-gradient(135deg, #ff8a00, #e52e71);
+            width: 70px;
+            height: 70px;
+            font-size: 28px;
+        }
+        
+        .play-btn:hover {
+            box-shadow: 0 0 20px rgba(229, 46, 113, 0.7);
+        }
+        
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #ccc;
+            border-left: 4px solid #ff8a00;
+        }
+        
+        .browser-tip {
+            background: rgba(255, 138, 0, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #ffaa60;
+            border: 1px solid rgba(255, 138, 0, 0.3);
+        }
+        
+        .volume-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .volume-slider {
+            width: 150px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ff8a00;
+            cursor: pointer;
+        }
+        
+        footer {
+            margin-top: 30px;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .hidden-audio {
+            display: none;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .player-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .track-info {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>音乐播放器</h1>
+        <div class="subtitle">打开页面后，音乐将自动播放</div>
+        
+        <div class="player-container">
+            <div class="player-info">
+                <div class="album-art">
+                    <span>♪</span>
+                </div>
+                <div class="track-info">
+                    <div class="track-title">在线音乐</div>
+                    <div class="track-artist">来自外链的音乐文件</div>
+                    <div class="status" id="playback-status">
+                        正在加载音频，准备自动播放...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn" id="prev-btn">⏮</button>
+                <button class="control-btn play-btn" id="play-btn">▶</button>
+                <button class="control-btn" id="next-btn">⏭</button>
+            </div>
+            
+            <div class="volume-control">
+                <span>🔈</span>
+                <input type="range" min="0" max="100" value="70" class="volume-slider" id="volume-slider">
+                <span>🔊</span>
+            </div>
+        </div>
+        
+        <div class="browser-tip">
+            注意：某些浏览器可能阻止自动播放。如果音乐没有自动播放，请点击上方的播放按钮。
+        </div>
+        
+        <!-- 隐藏的音频元素 -->
+        <audio id="audio-player" class="hidden-audio" controls autoplay>
+            <!-- 请将下面的"链接1"替换为您的实际音乐外链URL -->
+            <source src="https://www.joy127.com/audio/123438.mp3" type="audio/mpeg">
+            您的浏览器不支持音频播放。
+        </audio>
+    </div>
+    
+    <footer>
+        音乐外链播放器 | 自动播放功能演示
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取音频元素
+            const audioPlayer = document.getElementById('audio-player');
+            const playBtn = document.getElementById('play-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const volumeSlider = document.getElementById('volume-slider');
+            const playbackStatus = document.getElementById('playback-status');
+            
+            // 更新播放状态显示
+            function updatePlaybackStatus() {
+                if (audioPlayer.paused) {
+                    playbackStatus.textContent = '音乐已暂停';
+                    playbackStatus.style.borderLeftColor = '#ff0000';
+                } else {
+                    playbackStatus.textContent = '正在播放音乐...';
+                    playbackStatus.style.borderLeftColor = '#00ff00';
+                }
+            }
+            
+            // 自动播放尝试
+            function attemptAutoplay() {
+                // 设置初始音量（不是静音，提高自动播放成功率）
+                audioPlayer.volume = 0.7;
+                volumeSlider.value = 70;
+                
+                // 尝试播放
+                const playPromise = audioPlayer.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // 自动播放成功
+                        playBtn.innerHTML = '⏸';
+                        updatePlaybackStatus();
+                        console.log('自动播放成功');
+                    }).catch(error => {
+                        // 自动播放被阻止
+                        playbackStatus.textContent = '自动播放被阻止，请点击播放按钮';
+                        playbackStatus.style.borderLeftColor = '#ff8a00';
+                        console.log('自动播放被阻止:', error);
+                    });
+                }
+            }
+            
+            // 播放/暂停控制
+            playBtn.addEventListener('click', function() {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    playBtn.innerHTML = '⏸';
+                } else {
+                    audioPlayer.pause();
+                    playBtn.innerHTML = '▶';
+                }
+                updatePlaybackStatus();
+            });
+            
+            // 上一首/下一首按钮（演示功能）
+            prevBtn.addEventListener('click', function() {
+                playbackStatus.textContent = '上一首功能仅为演示，当前音乐重新开始';
+                playbackStatus.style.borderLeftColor = '#ff8a00';
+                audioPlayer.currentTime = 0;
+            });
+            
+            nextBtn.addEventListener('click', function() {
+                playbackStatus.textContent = '下一首功能仅为演示，当前音乐继续播放';
+                playbackStatus.style.borderLeftColor = '#ff8a00';
+            });
+            
+            // 音量控制
+            volumeSlider.addEventListener('input', function() {
+                audioPlayer.volume = this.value / 100;
+            });
+            
+            // 音频事件监听
+            audioPlayer.addEventListener('playing', function() {
+                playBtn.innerHTML = '⏸';
+                updatePlaybackStatus();
+            });
+            
+            audioPlayer.addEventListener('pause', function() {
+                playBtn.innerHTML = '▶';
+                updatePlaybackStatus();
+            });
+            
+            audioPlayer.addEventListener('ended', function() {
+                playbackStatus.textContent = '音乐播放结束';
+                playbackStatus.style.borderLeftColor = '#ff0000';
+                playBtn.innerHTML = '▶';
+            });
+            
+            audioPlayer.addEventListener('error', function() {
+                playbackStatus.textContent = '加载音乐时出错，请检查链接是否正确';
+                playbackStatus.style.borderLeftColor = '#ff0000';
+                console.error('音频加载错误:', audioPlayer.error);
+            });
+            
+            // 页面加载后尝试自动播放
+            window.addEventListener('load', function() {
+                // 延迟一点时间，确保页面完全加载
+                setTimeout(attemptAutoplay, 500);
+            });
+            
+            // 用户与页面交互时也尝试播放（提高自动播放成功率）
+            document.addEventListener('click', function() {
+                if (audioPlayer.paused) {
+                    // 如果音频是暂停状态，尝试播放
+                    audioPlayer.play().then(() => {
+                        playBtn.innerHTML = '⏸';
+                        updatePlaybackStatus();
+                    }).catch(e => {
+                        console.log('交互后播放失败:', e);
+                    });
+                }
+            }, { once: true }); // 只执行一次
+        });
+    </script>
+</body>
+</html>
